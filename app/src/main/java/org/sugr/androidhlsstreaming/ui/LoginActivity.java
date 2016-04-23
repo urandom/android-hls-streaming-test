@@ -23,11 +23,18 @@ public class LoginActivity extends AppCompatActivity implements LoginViewModel.L
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        viewModel.destroy();
+    }
+
+    @Override
     public void activateLogin(String email) {
     }
 
     @Override
     public void activateRegistration() {
+        startActivity(RegistrationActivity.intent(this));
     }
 }
 

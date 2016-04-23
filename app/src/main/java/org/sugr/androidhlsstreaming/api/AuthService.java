@@ -13,7 +13,7 @@ public interface AuthService {
     Single<String> getUser(@Path("email") String email);
 
     @POST("user")
-    Single<Void> createUser(@Body UserData userData);
+    Single<UserCreateState> createUser(@Body UserData userData);
 
     @GET("user/{email}/media")
     Single<String> getMedia(@Path("email") String email);

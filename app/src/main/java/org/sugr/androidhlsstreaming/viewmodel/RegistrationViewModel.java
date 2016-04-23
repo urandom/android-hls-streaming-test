@@ -4,10 +4,16 @@ import android.content.Context;
 import android.databinding.Observable;
 import android.databinding.ObservableBoolean;
 import android.databinding.ObservableField;
+import android.view.View;
 
 import org.sugr.androidhlsstreaming.R;
 import org.sugr.androidhlsstreaming.api.AuthService;
+import org.sugr.androidhlsstreaming.api.UserCreateState;
+import org.sugr.androidhlsstreaming.api.args.UserData;
 import org.sugr.androidhlsstreaming.validation.Validator;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class RegistrationViewModel implements ViewModel {
     public ObservableField<String> email = new ObservableField<>("");
@@ -17,19 +23,20 @@ public class RegistrationViewModel implements ViewModel {
     public ObservableBoolean emailValid = new ObservableBoolean(false);
     public ObservableBoolean passwordValid = new ObservableBoolean(false);
     public ObservableBoolean passwordConfirmValid = new ObservableBoolean(false);
+    public ObservableBoolean working = new ObservableBoolean(false);
 
-    public ObservableField<String> loginError = new ObservableField<>(null);
+    public ObservableField<String> registrationError = new ObservableField<>(null);
     public ObservableField<String> passwordError = new ObservableField<>(null);
 
     private Context context;
     private AuthService service;
-    private LoginActivator activator;
+    private RegistrationActivator activator;
 
-    public interface LoginActivator {
-        void activateRegistration(String email);
+    public interface RegistrationActivator {
+        void activateRegistration(String email, boolean requiresActivation);
     }
 
-    public RegistrationViewModel(Context context, LoginActivator activator, AuthService service) {
+    public RegistrationViewModel(Context context, RegistrationActivator activator, AuthService service) {
         this.context = context;
         this.activator = activator;
         this.service = service;
@@ -42,6 +49,44 @@ public class RegistrationViewModel implements ViewModel {
     public void destroy() {
         context = null;
         activator = null;
+    }
+
+    public void onRegistrationSubmit(View unused) {
+        working.set(true);
+        service.createUser(new UserData(email.get(), password.get()))
+                .map(state -> {
+                    switch (state.state) {
+                        case UserCreateState.State.CREATED:
+                            return new RegistrationPayload(state.email, true);
+                        case UserCreateState.State.PENDING_ACTIVATION:
+                            return new RegistrationPayload(state.email, false);
+                        case UserCreateState.State.ALREADY_EXISTS:
+                            throw new AlreadyExistsException();
+                        default:
+                            throw new UnknownStateException();
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(payload -> {
+                    working.set(false);
+                    if (this.activator != null) {
+                        registrationError.set(null);
+                        this.activator.activateRegistration(payload.email, payload.requiresActivation);
+                    }
+                }, err -> {
+                    err.printStackTrace();
+                    working.set(false);
+                    if (context != null) {
+                        if (err instanceof AlreadyExistsException) {
+                            registrationError.set(context.getString(R.string.registration_user_exists));
+                        } else if (err instanceof UnknownStateException) {
+                            registrationError.set(context.getString(R.string.registration_unknown_state));
+                        } else {
+                            registrationError.set(context.getString(R.string.registration_network_error));
+                        }
+                    }
+                });
     }
 
     private void setupValidation() {
@@ -64,4 +109,17 @@ public class RegistrationViewModel implements ViewModel {
         password.addOnPropertyChangedCallback(validator);
     }
 
+    private class RegistrationPayload {
+        String email;
+        boolean requiresActivation;
+
+        public RegistrationPayload(String email, boolean requiresActivation) {
+            this.email = email;
+            this.requiresActivation = requiresActivation;
+        }
+
+    }
+
+    private class AlreadyExistsException extends RuntimeException {}
+    private class UnknownStateException extends RuntimeException {}
 }

@@ -18,6 +18,7 @@ public class LoginViewModel implements ViewModel {
     public ObservableField<String> password = new ObservableField<>("");
     public ObservableBoolean emailValid = new ObservableBoolean(false);
     public ObservableBoolean passwordValid = new ObservableBoolean(false);
+    public ObservableBoolean working = new ObservableBoolean(false);
 
     public ObservableField<String> loginError = new ObservableField<>(null);
 
@@ -39,24 +40,34 @@ public class LoginViewModel implements ViewModel {
     }
 
     public void onLoginSubmit(View unused) {
+        working.set(true);
         service.getUser(email.get())
+                .map(email -> {
+                    if (email == null) {
+                        throw new InvalidLoginException();
+                    }
+
+                    return email;
+                })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(email -> {
+                    working.set(false);
                     // Make sure the context is still alive
                     if (context != null && activator != null) {
-                        if (email != null) {
-                            loginError.set(null);
-                            activator.activateLogin(email);
-                        } else {
-                            loginError.set(context.getString(R.string.login_invalid));
-                        }
+                        loginError.set(null);
+                        activator.activateLogin(email);
                     }
                 }, err -> {
-                    if (context != null) {
-                        loginError.set(context.getString(R.string.login_network_error));
-                    }
+                    working.set(false);
                     err.printStackTrace();
+                    if (context != null) {
+                        if (err instanceof InvalidLoginException) {
+                            loginError.set(context.getString(R.string.login_invalid));
+                        } else {
+                            loginError.set(context.getString(R.string.login_network_error));
+                        }
+                    }
                 });
     }
 
@@ -87,4 +98,5 @@ public class LoginViewModel implements ViewModel {
         password.addOnPropertyChangedCallback(validator);
     }
 
+    private class InvalidLoginException extends RuntimeException {}
 }
