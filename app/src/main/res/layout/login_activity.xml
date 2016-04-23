@@ -1,6 +1,10 @@
-<layout  xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <import type="android.view.View"/>
+        <variable
+            name="viewModel"
+            type="org.sugr.androidhlsstreaming.viewmodel.LoginViewModel"/>
     </data>
 
     <RelativeLayout
@@ -25,16 +29,6 @@
             android:text="@string/login_header"
             android:textAllCaps="true"/>
 
-        <!-- Login progress -->
-        <ProgressBar
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_above="@id/login_form"
-            android:layout_centerHorizontal="true"
-            android:visibility="gone" />
-
         <LinearLayout
             android:id="@+id/login_form"
             android:layout_width="match_parent"
@@ -46,14 +40,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <AutoCompleteTextView
+                <EditText
                     android:id="@+id/email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_email"
                     android:inputType="textEmailAddress"
+                    android:text="@={viewModel.email}"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    app:error="@{viewModel.loginError}"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -70,8 +66,9 @@
                     android:imeActionLabel="@string/action_login"
                     android:imeOptions="actionUnspecified"
                     android:inputType="textPassword"
+                    android:text="@={viewModel.password}"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"/>
 
             </android.support.design.widget.TextInputLayout>
 
@@ -81,9 +78,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/action_login"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:enabled="@{viewModel.emailValid &amp;&amp; viewModel.passwordValid ? true : false}"
+                android:onClick="@{viewModel::onLoginSubmit}"/>
 
         </LinearLayout>
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_above="@id/login_form"
+            android:layout_centerHorizontal="true"
+            android:visibility="gone" />
 
         <Button
             style="?android:borderlessButtonStyle"
@@ -92,7 +100,8 @@
             android:layout_marginBottom="16dp"
             android:textSize="12sp"
             android:layout_alignParentBottom="true"
-            android:text="@string/action_register"/>
+            android:text="@string/action_register"
+            android:onClick="@{viewModel::onRegistrationSubmit}"/>
 
     </RelativeLayout>
 </layout>

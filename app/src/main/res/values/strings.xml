@@ -14,4 +14,6 @@
     </string>
     <string name="login_header">Login</string>
     <string name="action_register">Register</string>
+    <string name="login_email_error">invalid email</string>
+    <string name="login_password_error">Invalid password</string>
 </resources>
