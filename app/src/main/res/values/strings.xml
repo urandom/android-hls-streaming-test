@@ -16,4 +16,7 @@
     <string name="action_register">Register</string>
     <string name="login_email_error">invalid email</string>
     <string name="login_password_error">Invalid password</string>
+    <string name="login_invalid">Invalid email or password</string>
+    <string name="login_network_error">Error contacting server</string>
+    <string name="registration_password_mismatch">Passwords are not identical</string>
 </resources>

@@ -10,7 +10,7 @@ import rx.Single;
 
 public interface AuthService {
     @GET("user/{email}")
-    Single<Boolean> getUser(@Path("email") String email);
+    Single<String> getUser(@Path("email") String email);
 
     @POST("user")
     Single<Void> createUser(@Body UserData userData);
