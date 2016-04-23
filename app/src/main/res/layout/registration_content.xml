@@ -72,9 +72,10 @@
                     android:imeActionLabel="@string/action_register"
                     android:imeOptions="actionUnspecified"
                     android:inputType="textPassword"
-                    android:text="@={viewModel.password}"
+                    android:text="@={viewModel.passwordConfirm}"
                     android:maxLines="1"
-                    android:singleLine="true"/>
+                    android:singleLine="true"
+                    app:error="@{viewModel.passwordError}"/>
 
             </android.support.design.widget.TextInputLayout>
 

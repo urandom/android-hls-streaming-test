@@ -9,6 +9,7 @@ import android.support.v7.widget.Toolbar;
 
 import org.sugr.androidhlsstreaming.R;
 import org.sugr.androidhlsstreaming.api.MockAuthService;
+import org.sugr.androidhlsstreaming.api.UserCreateState;
 import org.sugr.androidhlsstreaming.databinding.RegistrationActivityBinding;
 import org.sugr.androidhlsstreaming.viewmodel.RegistrationViewModel;
 
@@ -37,8 +38,16 @@ public class RegistrationActivity extends AppCompatActivity implements Registrat
     }
 
     @Override
-    public void activateRegistration(String email, boolean requiresActivation) {
-
+    public void activateRegistration(String email, int state) {
+        switch (state) {
+            case UserCreateState.State.PENDING_ACTIVATION:
+            case UserCreateState.State.WAITING_FOR_ACTIVATION:
+                startActivity(LoginActivity.intent(this, email, state));
+                break;
+            default:
+                startActivity(LoginActivity.intent(this));
+                break;
+        }
     }
 
     public static Intent intent(Context context) {

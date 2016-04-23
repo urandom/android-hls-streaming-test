@@ -27,12 +27,16 @@ public class MockAuthService implements AuthService {
     @Override
     public Single<UserCreateState> createUser(@Body UserData userData) {
         UserCreateState state = new UserCreateState(userData.email);
-        int r = rnd.nextInt(10);
-
-        if (r < 4) {
-            state.state = UserCreateState.State.PENDING_ACTIVATION;
-        } else if (r > 3 && r < 8) {
+        if (userData.email.equals("foo@example.com")) {
             state.state = UserCreateState.State.ALREADY_EXISTS;
+        } else {
+            int r = rnd.nextInt(10);
+
+            if (r < 4) {
+                state.state = UserCreateState.State.PENDING_ACTIVATION;
+            } else if (r > 3 && r < 8) {
+                state.state = UserCreateState.State.ALREADY_EXISTS;
+            }
         }
 
         return Single.just(state);

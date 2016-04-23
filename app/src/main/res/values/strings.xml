@@ -24,4 +24,6 @@
     <string name="registration_user_exists">User already exists</string>
     <string name="registration_unknown_state">Unknown server response</string>
     <string name="title_activity_registration">Register new user</string>
+    <string name="registration_activating">An activation email has been sent to %s</string>
+    <string name="registration_resending_activation">An activation email has been sent again to %s</string>
 </resources>

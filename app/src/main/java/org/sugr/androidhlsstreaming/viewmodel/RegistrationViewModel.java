@@ -22,7 +22,7 @@ public class RegistrationViewModel implements ViewModel {
 
     public ObservableBoolean emailValid = new ObservableBoolean(false);
     public ObservableBoolean passwordValid = new ObservableBoolean(false);
-    public ObservableBoolean passwordConfirmValid = new ObservableBoolean(false);
+    public ObservableBoolean passwordConfirmValid = new ObservableBoolean(true);
     public ObservableBoolean working = new ObservableBoolean(false);
 
     public ObservableField<String> registrationError = new ObservableField<>(null);
@@ -33,7 +33,7 @@ public class RegistrationViewModel implements ViewModel {
     private RegistrationActivator activator;
 
     public interface RegistrationActivator {
-        void activateRegistration(String email, boolean requiresActivation);
+        void activateRegistration(String email, int state);
     }
 
     public RegistrationViewModel(Context context, RegistrationActivator activator, AuthService service) {
@@ -57,9 +57,9 @@ public class RegistrationViewModel implements ViewModel {
                 .map(state -> {
                     switch (state.state) {
                         case UserCreateState.State.CREATED:
-                            return new RegistrationPayload(state.email, true);
                         case UserCreateState.State.PENDING_ACTIVATION:
-                            return new RegistrationPayload(state.email, false);
+                        case UserCreateState.State.WAITING_FOR_ACTIVATION:
+                            return new RegistrationPayload(state.email, state.state);
                         case UserCreateState.State.ALREADY_EXISTS:
                             throw new AlreadyExistsException();
                         default:
@@ -72,7 +72,7 @@ public class RegistrationViewModel implements ViewModel {
                     working.set(false);
                     if (this.activator != null) {
                         registrationError.set(null);
-                        this.activator.activateRegistration(payload.email, payload.requiresActivation);
+                        this.activator.activateRegistration(payload.email, payload.state);
                     }
                 }, err -> {
                     err.printStackTrace();
@@ -94,11 +94,12 @@ public class RegistrationViewModel implements ViewModel {
             @Override public void onPropertyChanged(Observable observable, int i) {
                 if (email == observable) {
                     emailValid.set(Validator.email(email.get()));
-                } else if (password == observable) {
+                } else if (password == observable || passwordConfirm == observable) {
                     passwordValid.set(Validator.password(password.get()));
-                } else if (passwordConfirm == observable) {
                     passwordConfirmValid.set(Validator.passwordMatch(passwordConfirm.get(), password.get()));
 
+                    // Each keypress will clear the view's error message
+                    passwordError.set(null);
                     passwordError.set(passwordConfirmValid.get()
                             ? null : context.getString(R.string.registration_password_mismatch));
                 }
@@ -107,15 +108,16 @@ public class RegistrationViewModel implements ViewModel {
 
         email.addOnPropertyChangedCallback(validator);
         password.addOnPropertyChangedCallback(validator);
+        passwordConfirm.addOnPropertyChangedCallback(validator);
     }
 
     private class RegistrationPayload {
         String email;
-        boolean requiresActivation;
+        int state;
 
-        public RegistrationPayload(String email, boolean requiresActivation) {
+        public RegistrationPayload(String email, int state) {
             this.email = email;
-            this.requiresActivation = requiresActivation;
+            this.state = state;
         }
 
     }
