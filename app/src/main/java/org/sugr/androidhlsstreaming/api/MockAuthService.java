@@ -12,16 +12,16 @@ public class MockAuthService implements AuthService {
 
     @Override
     public Single<Boolean> getUser(@Path("email") String email) {
-        return null;
+        return Single.just("foo@example.com".equals(email));
     }
 
     @Override
-    public Single<Boolean> createUser(@Body UserData userData) {
-        return null;
+    public Single<Void> createUser(@Body UserData userData) {
+        return Single.just(null);
     }
 
     @Override
     public Single<String> getMedia(@Path("email") String email) {
-        return null;
+        return Single.just("https://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8");
     }
 }
