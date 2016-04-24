@@ -48,7 +48,8 @@ public class LoginActivity extends AppCompatActivity implements LoginViewModel.L
     }
 
     @Override
-    public void activateLogin(String email) {
+    public void activateLogin(String email, String auth) {
+        startActivity(MediaActivity.intent(this, email, auth));
     }
 
     @Override

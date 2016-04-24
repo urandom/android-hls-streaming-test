@@ -27,7 +27,7 @@ public class LoginViewModel implements ViewModel {
     private LoginActivator activator;
 
     public interface LoginActivator {
-        void activateLogin(String email);
+        void activateLogin(String email, String auth);
         void activateRegistration();
     }
 
@@ -40,29 +40,24 @@ public class LoginViewModel implements ViewModel {
     }
 
     public void onLoginSubmit(View unused) {
+        loginError.set(null);
         working.set(true);
-        service.getUser(email.get())
-                .map(email -> {
-                    if (email == null) {
-                        throw new InvalidLoginException();
-                    }
 
-                    return email;
-                })
+        String auth = email.get() + ":" + password.get();
+        service.getUser(email.get(), auth)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(email -> {
                     working.set(false);
                     // Make sure the context is still alive
                     if (context != null && activator != null) {
-                        loginError.set(null);
-                        activator.activateLogin(email);
+                        activator.activateLogin(email, auth);
                     }
                 }, err -> {
                     working.set(false);
                     err.printStackTrace();
                     if (context != null) {
-                        if (err instanceof InvalidLoginException) {
+                        if (err instanceof AuthService.AuthException) {
                             loginError.set(context.getString(R.string.login_invalid));
                         } else {
                             loginError.set(context.getString(R.string.login_network_error));
@@ -97,6 +92,4 @@ public class LoginViewModel implements ViewModel {
         email.addOnPropertyChangedCallback(validator);
         password.addOnPropertyChangedCallback(validator);
     }
-
-    private class InvalidLoginException extends RuntimeException {}
 }

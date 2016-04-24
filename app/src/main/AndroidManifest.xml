@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.sugr.androidhlsstreaming">
 
-    <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -25,6 +25,16 @@
             android:label="@string/title_activity_registration"
             android:parentActivityName=".ui.LoginActivity"
             android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="org.sugr.androidhlsstreaming.ui.LoginActivity" />
+        </activity>
+        <activity
+            android:name=".ui.MediaActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_media"
+            android:parentActivityName=".ui.LoginActivity"
+            android:theme="@style/FullscreenTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.sugr.androidhlsstreaming.ui.LoginActivity" />

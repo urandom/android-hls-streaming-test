@@ -5,22 +5,24 @@ import org.sugr.androidhlsstreaming.api.args.UserData;
 import java.util.Random;
 
 import retrofit2.http.Body;
-import retrofit2.http.Path;
 import rx.Single;
 
 public class MockAuthService implements AuthService {
     private Random rnd;
+
+    private static final String email = "foo@example.com";
+    private static final String auth = email + ":foobar";
 
     public MockAuthService() {
         rnd = new Random();
     }
 
     @Override
-    public Single<String> getUser(@Path("email") String email) {
-        if ("foo@example.com".equals(email)) {
+    public Single<String> getUser(String email, String authorization) {
+        if (MockAuthService.email.equals(email) && auth.equals(authorization)) {
             return Single.just(email);
         } else {
-            return Single.just(null);
+            return Single.error(new AuthException());
         }
     }
 
@@ -43,7 +45,11 @@ public class MockAuthService implements AuthService {
     }
 
     @Override
-    public Single<String> getMedia(@Path("email") String email) {
-        return Single.just("https://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8");
+    public Single<String> getMedia(String email, String authorization) {
+        if (MockAuthService.email.equals(email) && auth.equals(authorization)) {
+            return Single.just("https://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8");
+        } else {
+            return Single.error(new AuthException());
+        }
     }
 }
